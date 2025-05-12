@@ -1,3 +1,17 @@
+<p align="center">
+  <img width="160" height="160" src="./Unwatched/Assets/Icon.png" alt="Unwatched logo">
+</p>
+
+<h1 align="center"/>Unwatched</h1>
+
+<p align="center">
+  RSS feed based YouTube video player for iOS
+</p>
+
+<p align="center">
+  <img src="./Unwatched/Assets/promo.png" alt="Unwatched screenshots" width="800" height="auto">
+</p>
+
 ---
 title: Audio Analysis
 emoji: ⚡
