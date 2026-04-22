@@ -11,35 +11,16 @@ import tempfile
 # =========================
 # App Header / Branding
 # =========================
-st.set_page_config(page_title="Wave2Data", layout="centered")
+st.set_page_config(page_title="Waves2Data", layout="centered")
 
-st.title("🌊 Wave2Data")
+st.title("Wave2Data")
 st.markdown("""
-### Audio → Insights
-
 Wave2Data is an audio analysis tool that converts raw sound into meaningful visual and statistical representations.
 
 **What you can do:**
 - Upload or record audio directly from your browser
 - Visualize waveform and frequency components
 - Analyze spectral patterns and MFCC features
-""")
-
-st.divider()
-
-st.markdown("""
-### 📌 How to Use
-
-1. **Upload an audio file** *(WAV, MP3, FLAC, OGG)*  
-   **OR**  
-2. **Record audio using your microphone**
-
-3. The system will automatically:
-   - Convert audio (if needed)
-   - Extract features
-   - Generate analysis plots
-
-4. View results instantly below
 """)
 
 st.divider()
