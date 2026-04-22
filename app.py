@@ -141,11 +141,10 @@ if file_path:
 # =========================
 # Footer
 # =========================
-st.divider()
 
 st.markdown("""
 ---
-### 🔍 About Wave2Data
+### 🎶 About Waves2Data
 
 Wave2Data transforms raw audio signals into structured data insights by applying digital signal processing techniques.
 
