@@ -86,7 +86,7 @@ streamlit run app.py
 
 Then open the provided local URL in your browser.
 
----
+
 
 ## Requirements
 
@@ -98,19 +98,21 @@ Then open the provided local URL in your browser.
 * soundfile
 * scipy
 
----
+
 
 ## Project Structure
 
 ```
 waves2data/
 │
+├── assets/
+│    └── waves2data.jpeg  # ScreenShot
 ├── app.py                # Main application file
 ├── requirements.txt      # Dependencies
 └── README.md             # Documentation
 ```
 
----
+
 
 ## Use Cases
 
@@ -119,7 +121,7 @@ waves2data/
 * Speech and sound pattern exploration
 * Preprocessing step for machine learning pipelines
 
----
+
 
 ## Limitations
 
@@ -127,13 +129,13 @@ waves2data/
 * Performance depends on input file size
 * Limited to basic feature extraction (no advanced ML models)
 
----
+
 
 ## License
 
 This project is free to use by anyone. No license restrictions are applied. Users are free to use, modify, and distribute the software without limitation.
 
----
+
 
 ## Contribution
 
@@ -144,7 +146,7 @@ Contributions are welcome. You can improve the project by:
 * Improving performance
 * Extending functionality with machine learning models
 
----
+
 
 ## Acknowledgements
 
