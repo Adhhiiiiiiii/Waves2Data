@@ -1,10 +1,6 @@
 streamlit
-streamlit-webrtc
-numpy
 librosa
 matplotlib
+numpy
 soundfile
-webrtcvad
-torch
-torchaudio
-av
+scipy
