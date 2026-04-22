@@ -7,26 +7,71 @@ import soundfile as sf
 import streamlit as st
 import tempfile
 
+
+# =========================
+# App Header / Branding
+# =========================
+st.set_page_config(page_title="Wave2Data", layout="centered")
+
+st.title("🌊 Wave2Data")
+st.markdown("""
+### Audio → Insights
+
+Wave2Data is an audio analysis tool that converts raw sound into meaningful visual and statistical representations.
+
+**What you can do:**
+- Upload or record audio directly from your browser
+- Visualize waveform and frequency components
+- Analyze spectral patterns and MFCC features
+""")
+
+st.divider()
+
+st.markdown("""
+### 📌 How to Use
+
+1. **Upload an audio file** *(WAV, MP3, FLAC, OGG)*  
+   **OR**  
+2. **Record audio using your microphone**
+
+3. The system will automatically:
+   - Convert audio (if needed)
+   - Extract features
+   - Generate analysis plots
+
+4. View results instantly below
+""")
+
+st.divider()
+
+
+# =========================
+# Core Functions
+# =========================
 def convert_to_wav(input_file, output_file):
     data, sample_rate = librosa.load(input_file, sr=None)
     sf.write(output_file, data, sample_rate)
 
+
 def analyze_audio(file_path):
-    # Convert to WAV if not already
     base_name, ext = os.path.splitext(file_path)
+
     if ext.lower() != '.wav':
         wav_file = base_name + '.wav'
         convert_to_wav(file_path, wav_file)
         file_path = wav_file
 
-    # Load the audio file
     try:
         audio_data, sample_rate = librosa.load(file_path)
     except Exception as e:
         return f"Error: {e}", None
 
     duration = librosa.get_duration(y=audio_data, sr=sample_rate)
-    info_text = f"File Information:\nDuration: {duration:.2f} seconds\nSample Rate: {sample_rate} Hz"
+    info_text = f"""
+File Information:
+- Duration: {duration:.2f} seconds
+- Sample Rate: {sample_rate} Hz
+"""
 
     plt.figure(figsize=(12, 6))
 
@@ -71,21 +116,19 @@ def analyze_audio(file_path):
 
 
 # =========================
-# Streamlit UI
+# Input Section
 # =========================
+st.subheader("🎧 Input Audio")
 
-st.title("Audio Analysis Tool")
-st.write("Upload a file or record from your microphone.")
+uploaded_file = st.file_uploader(
+    "Upload Audio File",
+    type=["wav", "mp3", "flac", "ogg"]
+)
 
-# -------- Upload --------
-uploaded_file = st.file_uploader("Upload Audio File", type=["wav", "mp3", "flac", "ogg"])
-
-# -------- Mic Input --------
-mic_audio = st.audio_input("Record Audio from Microphone")
+mic_audio = st.audio_input("Or record using microphone")
 
 file_path = None
 
-# Priority: mic > upload
 if mic_audio is not None:
     st.audio(mic_audio)
 
@@ -99,11 +142,39 @@ elif uploaded_file is not None:
         file_path = tmp_file.name
 
 
-# -------- Analysis --------
+# =========================
+# Analysis Section
+# =========================
 if file_path:
+    st.divider()
+    st.subheader("📊 Analysis Results")
+
     info, plot_path = analyze_audio(file_path)
 
     st.text(info)
 
     if plot_path:
         st.image(plot_path, caption="Audio Analysis", use_container_width=True)
+
+
+# =========================
+# Footer
+# =========================
+st.divider()
+
+st.markdown("""
+---
+### 🔍 About Wave2Data
+
+Wave2Data transforms raw audio signals into structured data insights by applying digital signal processing techniques.
+
+**It performs:**
+- Time-domain analysis (Waveform)
+- Frequency-domain analysis (Spectrogram & Power Spectrum)
+- Feature extraction (MFCC – widely used in speech and audio recognition)
+
+This tool is useful for:
+- Audio research
+- Signal processing learning
+- Speech and sound pattern analysis
+""")
