@@ -13,19 +13,38 @@ import av
 import tempfile
 
 # =========================
-# Speaker Embedding Model
+# Speaker Embedding Model (SAFE INIT)
 # =========================
-bundle = torchaudio.pipelines.SUPERB_XVECTOR
-model = bundle.get_model()
+model = None
+EMBEDDING_MODE = "mfcc"
+
+try:
+    if hasattr(torchaudio, "pipelines") and hasattr(torchaudio.pipelines, "SUPERB_XVECTOR"):
+        bundle = torchaudio.pipelines.SUPERB_XVECTOR
+        model = bundle.get_model()
+        EMBEDDING_MODE = "xvector"
+        print("Using XVector model")
+    else:
+        print("SUPERB_XVECTOR not available, using MFCC fallback")
+except Exception as e:
+    print("Model load failed:", e)
+
 
 def extract_embedding(waveform, sr):
+    # Ensure 16kHz
     if sr != 16000:
         waveform = librosa.resample(waveform, orig_sr=sr, target_sr=16000)
-        sr = 16000
-    waveform = torch.tensor(waveform).unsqueeze(0)
-    with torch.no_grad():
-        embedding = model(waveform)
-    return embedding.squeeze().numpy()
+
+    # Use xvector if available
+    if EMBEDDING_MODE == "xvector" and model is not None:
+        waveform_t = torch.tensor(waveform).unsqueeze(0)
+        with torch.no_grad():
+            emb = model(waveform_t)
+        return emb.squeeze().numpy()
+
+    # Fallback: MFCC-based embedding
+    mfcc = librosa.feature.mfcc(y=waveform, sr=16000, n_mfcc=13)
+    return np.mean(mfcc, axis=1)
 
 
 # =========================
@@ -33,35 +52,37 @@ def extract_embedding(waveform, sr):
 # =========================
 class AudioProcessor(AudioProcessorBase):
     def __init__(self):
-        self.vad = webrtcvad.Vad(2)  # aggressiveness 0–3
+        self.vad = webrtcvad.Vad(2)
         self.sample_rate = 16000
-        self.frame_duration = 30  # ms
 
     def recv(self, frame: av.AudioFrame) -> av.AudioFrame:
-        audio = frame.to_ndarray().flatten()
+        audio = frame.to_ndarray().flatten().astype(np.float32) / 32768.0
 
-        # Normalize
-        audio = audio.astype(np.float32) / 32768.0
+        # 🔥 CRITICAL FIX: WebRTC gives ~48kHz → resample to 16kHz
+        try:
+            audio = librosa.resample(audio, orig_sr=48000, target_sr=16000)
+        except:
+            pass
 
         # -------- VAD --------
         pcm16 = (audio * 32768).astype(np.int16).tobytes()
         is_speech = False
         try:
-            is_speech = self.vad.is_speech(pcm16, self.sample_rate)
+            is_speech = self.vad.is_speech(pcm16, 16000)
         except:
             pass
 
         # -------- Noise Profiling --------
-        noise_level = np.mean(np.abs(audio))
+        noise_level = float(np.mean(np.abs(audio)))
 
         # -------- Speaker Embedding --------
         try:
-            embedding = extract_embedding(audio, self.sample_rate)
-            speaker_id = np.linalg.norm(embedding)  # dummy identity metric
+            embedding = extract_embedding(audio, 16000)
+            speaker_id = float(np.linalg.norm(embedding))
         except:
-            speaker_id = 0
+            speaker_id = 0.0
 
-        # Send data to UI
+        # Store in session
         st.session_state["waveform"] = audio[:1000]
         st.session_state["vad"] = is_speech
         st.session_state["noise"] = noise_level
@@ -74,11 +95,10 @@ class AudioProcessor(AudioProcessorBase):
 # Visualization
 # =========================
 def plot_waveform(audio):
-    plt.figure(figsize=(10, 3))
-    plt.plot(audio)
-    plt.title("Real-time Waveform")
-    plt.tight_layout()
-    return plt
+    fig, ax = plt.subplots(figsize=(10, 3))
+    ax.plot(audio)
+    ax.set_title("Real-time Waveform")
+    return fig
 
 
 # =========================
@@ -86,7 +106,7 @@ def plot_waveform(audio):
 # =========================
 st.title("Real-Time Audio Intelligence Dashboard")
 
-# Initialize session state
+# Init session state
 for key in ["waveform", "vad", "noise", "speaker"]:
     if key not in st.session_state:
         st.session_state[key] = None
@@ -119,7 +139,7 @@ if st.session_state["waveform"] is not None:
 
 
 # =========================
-# FILE UPLOAD (unchanged pipeline)
+# FILE UPLOAD ANALYSIS
 # =========================
 st.divider()
 st.subheader("Upload Audio for Deep Analysis")
