@@ -25,13 +25,12 @@ def analyze_audio(file_path):
     except Exception as e:
         return f"Error: {e}", None
 
-    # Basic file information
     duration = librosa.get_duration(y=audio_data, sr=sample_rate)
     info_text = f"File Information:\nDuration: {duration:.2f} seconds\nSample Rate: {sample_rate} Hz"
 
-    # Waveform visualization
     plt.figure(figsize=(12, 6))
 
+    # Waveform
     plt.subplot(3, 1, 1)
     librosa.display.waveshow(audio_data, sr=sample_rate)
     plt.title('Waveform')
@@ -55,7 +54,7 @@ def analyze_audio(file_path):
     plt.ylabel('Power')
     plt.title('Power Spectrum')
 
-    # MFCCs
+    # MFCC
     mfccs = librosa.feature.mfcc(y=audio_data, sr=sample_rate, n_mfcc=13)
     plt.subplot(3, 2, 6)
     librosa.display.specshow(mfccs, x_axis='time')
@@ -64,28 +63,46 @@ def analyze_audio(file_path):
 
     plt.tight_layout()
 
-    # Save plot
     plot_file = 'audio_analysis.png'
     plt.savefig(plot_file)
     plt.close()
 
     return info_text, plot_file
 
-st.title("Audio Analysis Tool")
-st.write("Upload an audio file to analyze waveform, spectrogram, power spectrum, and MFCCs.")
 
+# =========================
+# Streamlit UI
+# =========================
+
+st.title("Audio Analysis Tool")
+st.write("Upload a file or record from your microphone.")
+
+# -------- Upload --------
 uploaded_file = st.file_uploader("Upload Audio File", type=["wav", "mp3", "flac", "ogg"])
 
-if uploaded_file is not None:
-    # Save uploaded file temporarily
+# -------- Mic Input --------
+mic_audio = st.audio_input("Record Audio from Microphone")
+
+file_path = None
+
+# Priority: mic > upload
+if mic_audio is not None:
+    st.audio(mic_audio)
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_file:
+        tmp_file.write(mic_audio.read())
+        file_path = tmp_file.name
+
+elif uploaded_file is not None:
     with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(uploaded_file.name)[1]) as tmp_file:
         tmp_file.write(uploaded_file.read())
-        temp_path = tmp_file.name
+        file_path = tmp_file.name
 
-    # Analyze
-    info, plot_path = analyze_audio(temp_path)
 
-    # Display results
+# -------- Analysis --------
+if file_path:
+    info, plot_path = analyze_audio(file_path)
+
     st.text(info)
 
     if plot_path:
