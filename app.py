@@ -11,9 +11,9 @@ import tempfile
 # =========================
 # App Header / Branding
 # =========================
-st.set_page_config(page_title="Waves2Data", layout="centered")
+st.set_page_config(page_title="📈 Waves2Data", layout="centered")
 
-st.title("Wave2Data")
+st.title("📈 Waves2Data")
 st.markdown("""
 Wave2Data is an audio analysis tool that converts raw sound into meaningful visual and statistical representations.
 
